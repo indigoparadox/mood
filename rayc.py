@@ -33,6 +33,8 @@ worldMap = [
 SCREEN_WIDTH = 512
 SCREEN_HEIGHT = 384
 
+from gridmap import GridMap
+
 def main():
    # x and y start position
    posX = float( 22 )
@@ -59,7 +61,7 @@ def main():
 
       pygame.draw.rect( screen, (0, 0, 0), [0, 0, SCREEN_WIDTH, SCREEN_HEIGHT] )
 
-      print (planeX, planeY, dirX, dirY)
+      #print (planeX, planeY, dirX, dirY)
 
       for x in range( 0, SCREEN_WIDTH - 1 ):
          # calculate ray position and direction
@@ -186,6 +188,9 @@ def main():
          if pygame.QUIT == event.type:
             running = False
          elif pygame.KEYDOWN == event.type:
+            if pygame.K_ESCAPE == event.key:
+               running = False
+
             if pygame.K_UP == event.key:
                if worldMap[int(posX + dirX * moveSpeed)][int(posY)] == 0:
                   posX += dirX * moveSpeed
