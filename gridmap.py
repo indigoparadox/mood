@@ -16,13 +16,13 @@ class GridMap( object ):
    def cast( self, x, facing, plane, pos, screen_sz ):
       cam_x = 2.0 * x / float( screen_sz[X] ) - 1
       if 0 == cam_x:
-         return (0, 0, (0, 0, 0))
+         return 0, 0, 0, (0, 0, 0)
       ray_dir = (float( facing[X] ) + float( plane[X] ) * float( cam_x ),
          float( facing[Y] ) + float( plane[Y] ) * float( cam_x ))
       delta_dist = (math.fabs( 1.0 / ray_dir[X]), math.fabs( 1.0 / ray_dir[Y] ))
 
       map_pos = (int( pos[X] ), int( pos[Y] ))
-      print map_pos
+      #print map_pos
 
       step_x = 1
       side_dist_x = (float( map_pos[X] ) + 1.0 - pos[X]) * delta_dist[X]
@@ -35,9 +35,6 @@ class GridMap( object ):
       if 0 > ray_dir[Y]:
          step_x = -1
          side_dist_x = (float( pos[Y] ) - map_pos[Y]) * delta_dist[Y]
-
-      assert( step_x == -1 or step_x == 1 )
-      assert( step_y == -1 or step_y == 1 )
 
       hit = False
       side = GridMap.WALL_L
@@ -79,7 +76,16 @@ class GridMap( object ):
          wall_dist = \
             (float( map_pos[Y] ) - pos[Y] + (1 - step_y) / 2) / ray_dir[Y]
 
-      return (int(screen_sz[Y] / wall_dist), side, color)
+      # calculate lowest and highest pixel to fill in current stripe
+      line_height = int(screen_sz[Y] / wall_dist) 
+      draw_start = int(-line_height / 2 + screen_sz[Y] / 2)
+      if draw_start < 0:
+         draw_start = 0
+      draw_end = int(line_height / 2 + screen_sz[Y] / 2)
+      if draw_end >= screen_sz[Y]:
+         draw_end = screen_sz[Y] - 1
+
+      return draw_start, draw_end, side, color
 
    def tile( self, pos ):
       return self.grid[int(pos[X])][int(pos[Y])]

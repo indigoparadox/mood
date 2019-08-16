@@ -35,6 +35,107 @@ SCREEN_HEIGHT = 384
 
 from gridmap import GridMap
 
+def cast( x, posX, posY, dirX, dirY, planeX, planeY ):
+   # calculate ray position and direction
+
+   # x-coordinate in camera space
+   cameraX = 2.0 * x / float( SCREEN_WIDTH ) - 1
+   if 0 == cameraX:
+      return 0, 0, 0
+   rayDirX = float( dirX ) + float( planeX ) * float( cameraX )
+   rayDirY = float( dirY ) + float( planeY ) * float( cameraX )
+
+   # which box of the map we're in
+   mapX = int(posX);
+   mapY = int(posY);
+
+   # length of ray from current position to next x or y-side
+   sideDistX = 0
+   sideDistY = 0
+
+   # length of ray from one x or y-side to next x or y-side
+   deltaDistX = math.fabs(1 / rayDirX)
+   deltaDistY = math.fabs(1 / rayDirY)
+
+   perpWallDist = 0
+
+   # what direction to step in x or y-direction (either +1 or -1)
+   stepX = 0
+   stepY = 0
+
+   # was there a wall hit?
+   hit = 0
+   # was a NS or a EW wall hit?
+   side = 0
+
+   # calculate step and initial sideDist
+   if rayDirX < 0:
+      stepX = -1
+      sideDistX = (float( posX ) - mapX) * deltaDistX
+   else:
+      stepX = 1
+      sideDistX = (float( mapX ) + 1.0 - posX) * deltaDistX
+
+   if rayDirY < 0:
+      stepY = -1
+      sideDistY = (float( posY ) - mapY) * deltaDistY
+   else:
+      stepY = 1
+      sideDistY = (float( mapY ) + 1.0 - posY) * deltaDistY
+
+   # perform DDA
+   while hit == 0:
+      # jump to next map square, OR in x-direction, OR in y-direction
+      if sideDistX < sideDistY:
+         sideDistX += deltaDistX
+         mapX += stepX
+         side = 0
+      else:
+         sideDistY += deltaDistY
+         mapY += stepY
+         side = 1
+
+      # Check if ray has hit a wall
+      if worldMap[mapX][mapY] > 0:
+         hit = 1;
+
+   # Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
+   if side == 0:
+      perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX
+   else:
+      perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY
+
+   # Calculate height of line to draw on screen
+   lineHeight = int(SCREEN_HEIGHT / perpWallDist)
+
+   # calculate lowest and highest pixel to fill in current stripe
+   drawStart = int(-lineHeight / 2 + SCREEN_HEIGHT / 2)
+   if drawStart < 0:
+      drawStart = 0
+   drawEnd = int(lineHeight / 2 + SCREEN_HEIGHT / 2)
+   if drawEnd >= SCREEN_HEIGHT:
+      drawEnd = SCREEN_HEIGHT - 1
+
+   # give x and y sides different brightness
+   intensity = 255
+   if side == 1:
+      intensity /= 2
+
+   # choose wall color
+   color = (0, 0, 0)
+   if worldMap[mapX][mapY] == 1:
+      color = (intensity, 0, 0)
+   elif worldMap[mapX][mapY] == 2:
+      color = (0, intensity, 0)
+   elif worldMap[mapX][mapY] == 3:
+      color = (0, 0, intensity)
+   elif worldMap[mapX][mapY] == 4:
+      color = (intensity, intensity, intensity)
+   else:
+      color = (0, intensity, intensity)
+
+   return drawStart, drawEnd, color
+
 def main():
    # x and y start position
    posX = float( 22 )
@@ -64,103 +165,8 @@ def main():
       #print (planeX, planeY, dirX, dirY)
 
       for x in range( 0, SCREEN_WIDTH - 1 ):
-         # calculate ray position and direction
 
-         # x-coordinate in camera space
-         cameraX = 2.0 * x / float( SCREEN_WIDTH ) - 1
-         if 0 == cameraX:
-            continue
-         rayDirX = float( dirX ) + float( planeX ) * float( cameraX )
-         rayDirY = float( dirY ) + float( planeY ) * float( cameraX )
-
-         # which box of the map we're in
-         mapX = int(posX);
-         mapY = int(posY);
-
-         # length of ray from current position to next x or y-side
-         sideDistX = 0
-         sideDistY = 0
-
-         # length of ray from one x or y-side to next x or y-side
-         deltaDistX = math.fabs(1 / rayDirX)
-         deltaDistY = math.fabs(1 / rayDirY)
-
-         perpWallDist = 0
-
-         # what direction to step in x or y-direction (either +1 or -1)
-         stepX = 0
-         stepY = 0
-
-         # was there a wall hit?
-         hit = 0
-         # was a NS or a EW wall hit?
-         side = 0
-
-         # calculate step and initial sideDist
-         if rayDirX < 0:
-            stepX = -1
-            sideDistX = (float( posX ) - mapX) * deltaDistX
-         else:
-            stepX = 1
-            sideDistX = (float( mapX ) + 1.0 - posX) * deltaDistX
-
-         if rayDirY < 0:
-            stepY = -1
-            sideDistY = (float( posY ) - mapY) * deltaDistY
-         else:
-            stepY = 1
-            sideDistY = (float( mapY ) + 1.0 - posY) * deltaDistY
-
-         # perform DDA
-         while hit == 0:
-            # jump to next map square, OR in x-direction, OR in y-direction
-            if sideDistX < sideDistY:
-               sideDistX += deltaDistX
-               mapX += stepX
-               side = 0
-            else:
-               sideDistY += deltaDistY
-               mapY += stepY
-               side = 1
-
-            # Check if ray has hit a wall
-            if worldMap[mapX][mapY] > 0:
-               hit = 1;
-
-         # Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
-         if side == 0:
-            perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX
-         else:
-            perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY
-
-         # Calculate height of line to draw on screen
-         lineHeight = int(SCREEN_HEIGHT / perpWallDist)
-
-         # calculate lowest and highest pixel to fill in current stripe
-         drawStart = int(-lineHeight / 2 + SCREEN_HEIGHT / 2)
-         if drawStart < 0:
-            drawStart = 0
-         drawEnd = int(lineHeight / 2 + SCREEN_HEIGHT / 2)
-         if drawEnd >= SCREEN_HEIGHT:
-            drawEnd = SCREEN_HEIGHT - 1
-
-         # give x and y sides different brightness
-         intensity = 255
-         if side == 1:
-            intensity /= 2
-
-         # choose wall color
-         color = (0, 0, 0)
-         if worldMap[mapX][mapY] == 1:
-            color = (intensity, 0, 0)
-         elif worldMap[mapX][mapY] == 2:
-            color = (0, intensity, 0)
-         elif worldMap[mapX][mapY] == 3:
-            color = (0, 0, intensity)
-         elif worldMap[mapX][mapY] == 4:
-            color = (intensity, intensity, intensity)
-         else:
-            color = (0, intensity, intensity)
+         drawStart, drawEnd, color = cast( x, posX, posY, dirX, dirY, planeX, planeY )
 
          # draw the pixels of the stripe as a vertical line
          pygame.draw.line( screen, color, (x, drawStart), (x, drawEnd) )
