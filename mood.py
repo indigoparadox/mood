@@ -22,7 +22,6 @@ class MainLoop( object ):
       self.input = inp
 
    def run( self ):
-      midline = SCREEN_H / 2
       gfx = self.gfx
       ticks = 0
       mspeed = 0.5
@@ -63,14 +62,14 @@ class MainLoop( object ):
             l_s, l_e, side = self.gmap.cast( x, gfx.pos[X], gfx.pos[Y], gfx.facing[X], gfx.facing[Y], gfx.plane[X], gfx.plane[Y], (SCREEN_W, SCREEN_H) )
 
             color = (255, 255, 255)
-            gfx.line( color, (x, l_s), (x, l_e), \
+            gfx.line( color, x, l_s, l_e, \
                True if GridMap.WALL_L == side else False )
 
          gfx.flip()
 
          gfx.wait( 10 )
 
-gfx = Gfx( (SCREEN_W, SCREEN_H) )
+gfx = Gfx( (SCREEN_W, SCREEN_H), 4 )
 main = MainLoop( gfx, Input(), GridMap( DefaultMap ) )
 
 main.run()

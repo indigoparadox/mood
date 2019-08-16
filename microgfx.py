@@ -50,15 +50,17 @@ class Gfx( object ):
    PATTERN_DOTS = 1
    PATTERN_STRIPES = 2
 
-   def __init__( self, screen_sz ):
+   def __init__( self, screen_sz, zoom=1 ):
 
       self.pos = (float( 6 ), float( 3 ))
       self.facing = (float( -1 ), float( 0 ))
       self.plane = (float( 0 ), float( 0.66 ))
+      self.zoom = zoom
 
       if ENGINE_PYGAME == engine:
          pygame.init()
-         self.screen = pygame.display.set_mode( screen_sz )
+         self.screen = pygame.display.set_mode( \
+            (screen_sz[X] * self.zoom, screen_sz[Y] * self.zoom) )
          self.clock = pygame.time.Clock()
 
    def wait( self, fps ):
@@ -68,28 +70,31 @@ class Gfx( object ):
    def blank( self, color ):
       if ENGINE_PYGAME == engine:
          pygame.draw.rect( self.screen, color, [0, 0,
-            self.screen.get_width(), self.screen.get_height()] )
+            self.screen.get_width() * self.zoom, 
+            self.screen.get_height() * self.zoom] )
 
-   def line( self, color, pos1, pos2, pattern ):
+   def line( self, color, x, y1, y2, pattern ):
 
       if ENGINE_PYGAME == engine:
          if Gfx.PATTERN_STRIPES == pattern:
-            for y_dot in range( pos1[Y], pos2[Y] ):
+            for y_dot in range( y1, y2 ):
                if 0 < y_dot % 2:
                   continue
-               pygame.draw.line( self.screen, color, \
-                  (pos1[X], y_dot), (pos2[X], y_dot) )
+               pygame.draw.rect( self.screen, color, \
+                  [x * self.zoom, y_dot * self.zoom, self.zoom, self.zoom] )
 
          elif Gfx.PATTERN_DOTS == pattern:
-            for y_dot in range( pos1[Y], pos2[Y] ):
-               if 0 < y_dot % 2 and 0 < pos1[X] % 2 \
-               or 0 == y_dot % 2 and 0 == pos1[X] % 2:
+            for y_dot in range( y1, y2 ):
+               if 0 < y_dot % 2 and 0 < x % 2 \
+               or 0 == y_dot % 2 and 0 == x % 2:
                   continue
-               pygame.draw.line( self.screen, color, \
-                  (pos1[X], y_dot), (pos2[X], y_dot) )
+               pygame.draw.rect( self.screen, color, \
+                  [x * self.zoom, y_dot * self.zoom, self.zoom, self.zoom] )
 
          else:
-            pygame.draw.line( self.screen, color, pos1, pos2 )
+            height = (y2 - y1) * self.zoom
+            pygame.draw.rect( self.screen, color, \
+               [x * self.zoom, y1 * self.zoom, self.zoom, height] )
 
    def rotate( self, speed ):
 
