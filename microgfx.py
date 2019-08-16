@@ -35,12 +35,14 @@ class Input( object ):
             elif pygame.KEYDOWN == event.type:
                if pygame.K_ESCAPE == event.key:
                   return Input.EVENT_QUIT
-               elif pygame.K_RIGHT == event.key:
-                  return Input.EVENT_RRIGHT
-               elif pygame.K_LEFT == event.key:
-                  return Input.EVENT_RLEFT
-               elif pygame.K_UP == event.key:
-                  return Input.EVENT_FWD
+
+         keys = pygame.key.get_pressed()
+         if keys[pygame.K_RIGHT]:
+            return Input.EVENT_RRIGHT
+         if keys[pygame.K_LEFT]:
+            return Input.EVENT_RLEFT
+         if keys[pygame.K_UP]:
+            return Input.EVENT_FWD
 
 class Gfx( object ):
 

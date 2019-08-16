@@ -13,71 +13,80 @@ class GridMap( object ):
    def __init__( self, grid ):
       self.grid = grid
 
-   def cast( self, x, facing, plane, pos, screen_sz ):
-      cam_x = 2.0 * x / float( screen_sz[X] ) - 1
+   def cast( self, x, pos_x, pos_y, facing_x, facing_y, plane_x, plane_y, screen_sz ):
+      # calculate ray position and direction
+
+      # x-coordinate in camera space
+      cam_x = 2.0 * x / float( screen_sz[Y] ) - 1
       if 0 == cam_x:
-         return 0, 0, 0, (0, 0, 0)
-      ray_dir = (float( facing[X] ) + float( plane[X] ) * float( cam_x ),
-         float( facing[Y] ) + float( plane[Y] ) * float( cam_x ))
-      delta_dist = (math.fabs( 1.0 / ray_dir[X]), math.fabs( 1.0 / ray_dir[Y] ))
+         return 0, 0, 0
+      ray_dir_x = float( facing_x ) + float( plane_x ) * float( cam_x )
+      ray_dir_y = float( facing_y ) + float( plane_y ) * float( cam_x )
 
-      map_pos = (int( pos[X] ), int( pos[Y] ))
-      #print map_pos
+      # which box of the map we're in
+      map_x = int(pos_x);
+      map_y = int(pos_y);
 
-      step_x = 1
-      side_dist_x = (float( map_pos[X] ) + 1.0 - pos[X]) * delta_dist[X]
-      if 0 > ray_dir[X]:
-         step_x = -1
-         side_dist_x = (float( pos[X] ) - map_pos[X]) * delta_dist[X]
+      # length of ray from current position to next x or y-side
+      side_dist_x = 0
+      side_dist_y = 0
 
-      step_y = 1
-      side_dist_y = (float( map_pos[Y] ) + 1.0 - pos[Y]) * delta_dist[Y]
-      if 0 > ray_dir[Y]:
-         step_x = -1
-         side_dist_x = (float( pos[Y] ) - map_pos[Y]) * delta_dist[Y]
+      # length of ray from one x or y-side to next x or y-side
+      delta_dist_x = math.fabs(1 / ray_dir_x)
+      delta_dist_y = math.fabs(1 / ray_dir_y)
 
+      wall_dist = 0
+
+      # what direction to step in x or y-direction (either +1 or -1)
+      step_x = 0
+      step_y = 0
+
+      # was there a wall hit?
       hit = False
+      # was a NS or a EW wall hit?
       side = GridMap.WALL_L
+
+      # calculate step and initial sideDist
+      if ray_dir_x < 0:
+         step_x = -1
+         side_dist_x = (float( pos_x ) - map_x) * delta_dist_x
+      else:
+         step_x = 1
+         side_dist_x = (float( map_x ) + 1.0 - pos_x) * delta_dist_x
+
+      if ray_dir_y < 0:
+         step_y = -1
+         side_dist_y = (float( pos_y ) - map_y) * delta_dist_y
+      else:
+         step_y = 1
+         side_dist_y = (float( map_y ) + 1.0 - pos_y) * delta_dist_y
+
+      # perform DDA
       while not hit:
+         # jump to next map square, OR in x-direction, OR in y-direction
          if side_dist_x < side_dist_y:
-            side_dist_x += delta_dist[X]
-            map_pos = (int( map_pos[X] + step_x ), map_pos[Y])
+            side_dist_x += delta_dist_x
+            map_x += step_x
             side = GridMap.WALL_L
          else:
-            side_dist_y += delta_dist[Y]
-            map_pos = (map_pos[X], int( map_pos[Y] + step_y ))
+            side_dist_y += delta_dist_y
+            map_y += step_y
             side = GridMap.WALL_R
 
-         #if 0 > map_pos[X] or 0 > map_pos[Y] or \
-         #len( self.grid ) <= map_pos[Y] or len( self.grid[0] ) <= map_pos[X]:
-         #   # Ray went off the map.
-         #   return (10, side)
+         # Check if ray has hit a wall
+         if self.grid[map_x][map_y] > 0:
+            hit = True;
 
-         if 0 < self.grid[map_pos[X]][map_pos[Y]]:
-            # Ray hit a wall.
-            hit = True
-
-      intensity = 255
-      if self.grid[map_pos[X]][map_pos[Y]] == 1:
-         color = (intensity, 0, 0)
-      elif self.grid[map_pos[X]][map_pos[Y]] == 2:
-         color = (0, intensity, 0)
-      elif self.grid[map_pos[X]][map_pos[Y]] == 3:
-         color = (0, 0, intensity)
-      elif self.grid[map_pos[X]][map_pos[Y]] == 4:
-         color = (intensity, intensity, intensity)
+      # Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
+      if side == 0:
+         wall_dist = (map_x - pos_x + (1 - step_x) / 2) / ray_dir_x
       else:
-         color = (0, intensity, intensity)
+         wall_dist = (map_y - pos_y + (1 - step_y) / 2) / ray_dir_y
 
-      if GridMap.WALL_L == side:
-         wall_dist = \
-            (float( map_pos[X] ) - pos[X] + (1 - step_x) / 2) / ray_dir[X]
-      else:
-         wall_dist = \
-            (float( map_pos[Y] ) - pos[Y] + (1 - step_y) / 2) / ray_dir[Y]
+      # Calculate height of line to draw on screen
+      line_height = int(screen_sz[Y] / wall_dist)
 
       # calculate lowest and highest pixel to fill in current stripe
-      line_height = int(screen_sz[Y] / wall_dist) 
       draw_start = int(-line_height / 2 + screen_sz[Y] / 2)
       if draw_start < 0:
          draw_start = 0
@@ -85,7 +94,8 @@ class GridMap( object ):
       if draw_end >= screen_sz[Y]:
          draw_end = screen_sz[Y] - 1
 
-      return draw_start, draw_end, side, color
+      return draw_start, draw_end, side
+
 
    def tile( self, pos ):
       return self.grid[int(pos[X])][int(pos[Y])]

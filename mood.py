@@ -5,10 +5,10 @@ from gridmap import GridMap
 from microgfx import Gfx, Input
 from maps import DefaultMap
 
-#SCREEN_H = 64
-#SCREEN_W = 128
-SCREEN_H = 480
-SCREEN_W = 640
+SCREEN_H = 64
+SCREEN_W = 128
+#SCREEN_H = 480
+#SCREEN_W = 640
 
 X = 0
 Y = 1
@@ -60,10 +60,10 @@ class MainLoop( object ):
 
          # Draw the walls.
          for x in range( 0, SCREEN_W - 1 ):
-            l_s, l_e, side, color = self.gmap.cast( \
-               x, gfx.facing, gfx.plane, gfx.pos, (SCREEN_W, SCREEN_H) )
+            l_s, l_e, side = self.gmap.cast( x, gfx.pos[X], gfx.pos[Y], gfx.facing[X], gfx.facing[Y], gfx.plane[X], gfx.plane[Y], (SCREEN_W, SCREEN_H) )
 
-            gfx.line( color, l_s, l_e, \
+            color = (255, 255, 255)
+            gfx.line( color, (x, l_s), (x, l_e), \
                True if GridMap.WALL_L == side else False )
 
          gfx.flip()
