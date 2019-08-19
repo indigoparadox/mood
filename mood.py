@@ -65,6 +65,8 @@ class MainLoop( object ):
             gfx.line( color, x, l_s, l_e, \
                True if GridMap.WALL_L == side else False )
 
+         gfx.text( 'foo', (255, 255, 255), 0,  0, (0, 0, 0) )
+
          gfx.flip()
 
          gfx.wait( 10 )
