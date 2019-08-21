@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 import time
+import random
+import math
 from gridmap import GridMap
 from microgfx import Gfx, Input
 from maps import DefaultMap
+from mob import Mob
 
 SCREEN_H = 64
 SCREEN_W = 128
@@ -12,6 +15,10 @@ SCREEN_W = 128
 
 X = 0
 Y = 1
+
+sprites = {
+   'bottle': [0x6, 0xcb, 0xb5, 0x8b, 0x85, 0xbb, 0xcf, 0x6]
+}
 
 class MainLoop( object ):
 
@@ -25,6 +32,12 @@ class MainLoop( object ):
       gfx = self.gfx
       ticks = 0
       mspeed = 0.5
+      zbuffer = [0] * SCREEN_W
+
+      mobs = []
+
+      randpos = (random.randint( 10, 18 ), random.randint( 10, 18 ))
+      mobs.append( Mob( randpos, sprites['bottle'] ) )
 
       while( self.running ):
 
@@ -59,12 +72,19 @@ class MainLoop( object ):
 
          # Draw the walls.
          for x in range( 0, SCREEN_W - 1 ):
-            l_s, l_e, side = self.gmap.cast( x, gfx.pos[X], gfx.pos[Y], gfx.facing[X], gfx.facing[Y], gfx.plane[X], gfx.plane[Y], (SCREEN_W, SCREEN_H) )
+            l_s, l_e, side = self.gmap.cast( x, gfx.pos[X], gfx.pos[Y], gfx.facing[X], gfx.facing[Y], gfx.plane[X], gfx.plane[Y], (SCREEN_W, SCREEN_H), zbuffer )
 
             color = (255, 255, 255)
             gfx.line( color, x, l_s, l_e, \
                True if GridMap.WALL_L == side else False )
 
+            # Draw the mobs.
+            for mob in mobs:
+               for px_x, px_y, px in mob.cast( x, gfx.pos, gfx.facing, gfx.plane, (SCREEN_W, SCREEN_H), zbuffer ):
+                  if px:
+                     gfx.line( (255, 0, 0), x, px_y, px_y, False )
+
+         # Draw the UI.
          gfx.text( 'foo', (255, 255, 255), 0,  0, (0, 0, 0) )
 
          gfx.flip()

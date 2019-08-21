@@ -13,7 +13,7 @@ class GridMap( object ):
    def __init__( self, grid ):
       self.grid = grid
 
-   def cast( self, x, pos_x, pos_y, facing_x, facing_y, plane_x, plane_y, screen_sz ):
+   def cast( self, x, pos_x, pos_y, facing_x, facing_y, plane_x, plane_y, screen_sz, zbuffer ):
       # calculate ray position and direction
 
       # x-coordinate in camera space
@@ -82,6 +82,7 @@ class GridMap( object ):
          wall_dist = (map_x - pos_x + (1 - step_x) / 2) / ray_dir_x
       else:
          wall_dist = (map_y - pos_y + (1 - step_y) / 2) / ray_dir_y
+      zbuffer[x] = wall_dist
 
       # Calculate height of line to draw on screen
       line_height = int(screen_sz[Y] / wall_dist)
