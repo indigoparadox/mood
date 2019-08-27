@@ -18,6 +18,9 @@ SCREEN_W = 128
 X = 0
 Y = 1
 
+START = 0
+END = 1
+
 sprites = {
    'bottle': [0x6, 0xcb, 0xb5, 0x8b, 0x85, 0xbb, 0xcf, 0x6]
 }
@@ -74,14 +77,26 @@ class MainLoop( object ):
 
          # Draw the walls.
          for x in range( 0, SCREEN_W - 1 ):
+            ray = None
             try:
                ray = GridRay( x, gfx.pos, gfx.facing, gfx.plane, (SCREEN_W, SCREEN_H) )
-               wall = ray.cast( self.gmap, gfx.pos, (SCREEN_W, SCREEN_H), zbuffer )
-               color = (255, 255, 255)
-               gfx.line( color, x, wall.draw_start, wall.draw_end, \
-                  True if GridWall.SIDE_NS == wall.side else False )
             except( ZeroDivisionError ):
-               pass
+               continue
+
+            walls = []
+            wall = None
+            while None == wall or (ray.map_x < 23 and ray.map_y < 23 and ray.map_x > 0 and ray.map_y > 0):
+               wall = \
+                  ray.cast( self.gmap, gfx.pos, (SCREEN_W, SCREEN_H), zbuffer )
+               if None == wall:
+                  continue
+               walls.append( wall )
+
+            walls = reversed( walls )
+            for wall in walls:
+               color = (255, 255, 255)
+               gfx.line( color, x, wall.draw[START], wall.draw[END], \
+                  True if GridWall.SIDE_NS == wall.side else False )
 
             # Draw the mobs.
             for mob in mobs:
