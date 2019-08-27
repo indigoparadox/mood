@@ -3,10 +3,12 @@
 import time
 import random
 import math
-from gridmap import GridMap
+from gridmap import GridMap, GridRay, GridWall
 from microgfx import Gfx, Input
 from maps import DefaultMap
 from mob import Mob
+
+#from guppy import hpy
 
 SCREEN_H = 64
 SCREEN_W = 128
@@ -72,17 +74,18 @@ class MainLoop( object ):
 
          # Draw the walls.
          for x in range( 0, SCREEN_W - 1 ):
-            l_s, l_e, side = self.gmap.cast( x, gfx.pos[X], gfx.pos[Y], gfx.facing[X], gfx.facing[Y], gfx.plane[X], gfx.plane[Y], (SCREEN_W, SCREEN_H), zbuffer )
-
+            ray = GridRay()
+            wall = ray.cast( self.gmap, x, gfx.pos[X], gfx.pos[Y], gfx.facing[X], gfx.facing[Y], gfx.plane[X], gfx.plane[Y], (SCREEN_W, SCREEN_H), zbuffer )
             color = (255, 255, 255)
-            gfx.line( color, x, l_s, l_e, \
-               True if GridMap.WALL_L == side else False )
+            gfx.line( color, x, wall.draw_start, wall.draw_end, \
+               True if GridWall.SIDE_NS == wall.side else False )
 
             # Draw the mobs.
             for mob in mobs:
-               for px_x, px_y, px in mob.cast( x, gfx.pos, gfx.facing, gfx.plane, (SCREEN_W, SCREEN_H), zbuffer ):
-                  if px:
-                     gfx.line( (255, 0, 0), x, px_y, px_y, False )
+               pass
+               #for px_x, px_y, px in mob.cast( x, gfx.pos, gfx.facing, gfx.plane, (SCREEN_W, SCREEN_H), zbuffer ):
+               #   if px:
+               #      gfx.line( (255, 0, 0), x, px_y, px_y, False )
 
          # Draw the UI.
          gfx.text( 'foo', (255, 255, 255), 0,  0, (0, 0, 0) )
