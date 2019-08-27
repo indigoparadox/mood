@@ -74,11 +74,14 @@ class MainLoop( object ):
 
          # Draw the walls.
          for x in range( 0, SCREEN_W - 1 ):
-            ray = GridRay()
-            wall = ray.cast( self.gmap, x, gfx.pos[X], gfx.pos[Y], gfx.facing[X], gfx.facing[Y], gfx.plane[X], gfx.plane[Y], (SCREEN_W, SCREEN_H), zbuffer )
-            color = (255, 255, 255)
-            gfx.line( color, x, wall.draw_start, wall.draw_end, \
-               True if GridWall.SIDE_NS == wall.side else False )
+            try:
+               ray = GridRay( x, gfx.pos, gfx.facing, gfx.plane, (SCREEN_W, SCREEN_H) )
+               wall = ray.cast( self.gmap, gfx.pos, (SCREEN_W, SCREEN_H), zbuffer )
+               color = (255, 255, 255)
+               gfx.line( color, x, wall.draw_start, wall.draw_end, \
+                  True if GridWall.SIDE_NS == wall.side else False )
+            except( ZeroDivisionError ):
+               pass
 
             # Draw the mobs.
             for mob in mobs:
