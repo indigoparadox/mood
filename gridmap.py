@@ -26,6 +26,8 @@ class GridRay( object ):
       self.dir = (float( facing[X] ) + float( plane[X] ) * float( cam_x ),
          float( facing[Y] ) + float( plane[Y] ) * float( cam_x ))
 
+      self.last_tile = 0
+
       # which box of the map we're in
       self.map_x = int( pos[X] )
       self.map_y = int( pos[Y] )
@@ -68,10 +70,12 @@ class GridRay( object ):
          side = GridWall.SIDE_EW
 
       # Check if ray has hit a wall.
-      if gmap.grid[self.map_x][self.map_y] <= 0:
+      if gmap.grid[self.map_x][self.map_y] <= 0 or \
+      gmap.grid[self.map_x][self.map_y] == self.last_tile:
          # Nope!
          return None
 
+      self.last_tile = gmap.grid[self.map_x][self.map_y]
       wall = GridWall( side )
 
       # Calculate distance projected on camera direction

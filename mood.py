@@ -79,13 +79,16 @@ class MainLoop( object ):
          for x in range( 0, SCREEN_W - 1 ):
             ray = None
             try:
-               ray = GridRay( x, gfx.pos, gfx.facing, gfx.plane, (SCREEN_W, SCREEN_H) )
+               ray = GridRay( x, gfx.pos, gfx.facing, gfx.plane, 
+                  (SCREEN_W, SCREEN_H) )
             except( ZeroDivisionError ):
                continue
 
             walls = []
             wall = None
-            while None == wall or (ray.map_x < 23 and ray.map_y < 23 and ray.map_x > 0 and ray.map_y > 0):
+            while None == wall or \
+            (ray.map_x < 23 and ray.map_y < 23 and \
+            ray.map_x > 0 and ray.map_y > 0):
                wall = \
                   ray.cast( self.gmap, gfx.pos, (SCREEN_W, SCREEN_H), zbuffer )
                if None == wall:
