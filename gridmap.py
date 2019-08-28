@@ -65,7 +65,7 @@ class GridRay( object ):
 
       self.step = (step_x, step_y)
 
-   def cast( self, pos, screen_sz, zbuffer ):
+   def cast( self, pos, screen_sz ):
 
       # Move the ray one step forward.
       side = GridWall.SIDE_NS

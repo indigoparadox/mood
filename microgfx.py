@@ -137,7 +137,6 @@ font8x8 = [
 engine = None
 
 import math
-import pygame
 
 class Gfx( object ):
 
@@ -146,7 +145,7 @@ class Gfx( object ):
    PATTERN_STRIPES_HORIZ = 2
    PATTERN_STRIPES_DIAG_1 = 3
 
-   def __init__( self, screen_sz, zoom=1 ):
+   def __init__( self, pyg, screen_sz, zoom=1 ):
 
       self.pos = (float( 6 ), float( 3 ))
       self.facing = (float( -1 ), float( 0 ))
@@ -154,17 +153,18 @@ class Gfx( object ):
       self.zoom = zoom
       self.diag_stripe_offset = 0
       self.diag_last_x = 0
+      self.pygame = pyg
 
-      pygame.init()
-      self.screen = pygame.display.set_mode( \
+      self.pygame.init()
+      self.screen = self.pygame.display.set_mode( \
          (screen_sz[X] * self.zoom, screen_sz[Y] * self.zoom) )
-      self.clock = pygame.time.Clock()
+      self.clock = self.pygame.time.Clock()
 
    def wait( self, fps ):
       self.clock.tick( fps )
 
    def blank( self, color ):
-      pygame.draw.rect( self.screen, color, [0, 0,
+      self.pygame.draw.rect( self.screen, color, [0, 0,
          self.screen.get_width() * self.zoom, 
          self.screen.get_height() * self.zoom] )
 
@@ -189,7 +189,7 @@ class Gfx( object ):
          char_offset += 1
 
    def pixel( self, color, x, y ):
-      pygame.draw.rect( self.screen, color, \
+      self.pygame.draw.rect( self.screen, color, \
          [x * self.zoom, y * self.zoom, self.zoom, self.zoom] )
 
    def line( self, color, x, y1, y2, pattern ):
@@ -225,7 +225,7 @@ class Gfx( object ):
 
       else:
          height = (y2 - y1) * self.zoom
-         pygame.draw.rect( self.screen, color, \
+         self.pygame.draw.rect( self.screen, color, \
             [x * self.zoom, y1 * self.zoom, self.zoom, height] )
 
    def rotate( self, speed ):
@@ -250,5 +250,5 @@ class Gfx( object ):
       self.plane = new_plane
 
    def flip( self ):
-      pygame.display.flip()
+      self.pygame.display.flip()
 
