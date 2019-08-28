@@ -26,13 +26,14 @@ class GridWall( object ):
 
 class GridRay( object ):
 
-   def __init__( self, x, pos, facing, plane, screen_sz ):
+   def __init__( self, gmap, x, pos, facing, plane, screen_sz ):
       # x-coordinate in camera space
       cam_x = 2.0 * x / float( screen_sz[Y] ) - 1
       self.dir = (float( facing[X] ) + float( plane[X] ) * float( cam_x ),
          float( facing[Y] ) + float( plane[Y] ) * float( cam_x ))
 
-      self.last_tile = 0
+      self.gmap = gmap
+      self.last_tile = gmap.tiles[0]
       self._last_wall_height = 0
 
       # which box of the map we're in
@@ -64,7 +65,7 @@ class GridRay( object ):
 
       self.step = (step_x, step_y)
 
-   def cast( self, gmap, pos, screen_sz, zbuffer ):
+   def cast( self, pos, screen_sz, zbuffer ):
 
       # Move the ray one step forward.
       side = GridWall.SIDE_NS
@@ -76,22 +77,27 @@ class GridRay( object ):
          self.map_y += self.step[Y]
          side = GridWall.SIDE_EW
 
+      tile = self.gmap.tile( self.map_x, self.map_y )
+
       # Check if ray has hit a wall.
-      if gmap.tile( self.map_x, self.map_y ) == self.last_tile:
-         # Nope!
+      try:
+         if tile['id'] == self.last_tile['id']:
+            # Nope!
+            return None
+      except TypeError:
          return None
 
-      wall = GridWall( side, gmap.grid[self.map_x][self.map_y] )
+      wall = GridWall( side, tile )
 
-      if 0 < self.last_tile and 0 == gmap.tile( self.map_x, self.map_y ):
+      if not tile['pass'] and 0 == tile['id']:
          # This must be a back wall, since we're going to 0.
          wall.face = GridWall.FACE_BACK
          wall.height = self._last_wall_height
       else:
-         wall.height = 1.0 / float( gmap.tile( self.map_x, self.map_y ) )
+         wall.height = tile['height']
          self._last_wall_height = wall.height
 
-      self.last_tile = gmap.tile( self.map_x, self.map_y )
+      self.last_tile = tile
 
       # Calculate distance projected on camera direction
       # (Euclidean distance will give fisheye effect!)
@@ -126,19 +132,20 @@ class GridRay( object ):
 
 class GridMap( object ):
 
-   def __init__( self, grid ):
+   def __init__( self, grid, tiles ):
       self.grid = grid
+      self.tiles = tiles
 
    def tile( self, x, y ):
-      out = 0
+      out = self.tiles[0]
       try:
-         out = self.grid[x][y]
+         out = self.tiles[self.grid[x][y]]
       except IndexError:
          pass
       return out
 
    def collides( self, pos ):
-      if self.tile( pos[X], pos[Y] ) == 0:
+      if self.tile( pos[X], pos[Y] )['pass']:
          return False
       else:
          return True

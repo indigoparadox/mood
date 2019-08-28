@@ -5,7 +5,7 @@ import random
 import math
 from gridmap import GridMap, GridRay, GridWall
 from microgfx import Gfx, Input
-from maps import DefaultMap
+from maps import DefaultMap, DefaultMapTiles
 from mob import Mob
 
 #from guppy import hpy
@@ -103,7 +103,7 @@ class MainLoop( object ):
          for x in range( 0, SCREEN_W - 1 ):
             ray = None
             try:
-               ray = GridRay( x, gfx.pos, gfx.facing, gfx.plane, 
+               ray = GridRay( self.gmap, x, gfx.pos, gfx.facing, gfx.plane, 
                   (SCREEN_W, SCREEN_H) )
             except( ZeroDivisionError ):
                continue
@@ -114,7 +114,7 @@ class MainLoop( object ):
             (ray.map_x < 23 and ray.map_y < 23 and \
             ray.map_x > 0 and ray.map_y > 0):
                wall = \
-                  ray.cast( self.gmap, gfx.pos, (SCREEN_W, SCREEN_H), zbuffer )
+                  ray.cast( gfx.pos, (SCREEN_W, SCREEN_H), zbuffer )
                if None == wall:
                   continue
                walls.append( wall )
@@ -151,7 +151,7 @@ class MainLoop( object ):
          gfx.wait( 10 )
 
 gfx = Gfx( (SCREEN_W, SCREEN_H), ZOOM )
-main = MainLoop( gfx, Input(), GridMap( DefaultMap ) )
+main = MainLoop( gfx, Input(), GridMap( DefaultMap, DefaultMapTiles ) )
 
 main.run()
 
