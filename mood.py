@@ -10,10 +10,13 @@ from mob import Mob
 
 #from guppy import hpy
 
+ZOOM = 2
 SCREEN_H = 64
 SCREEN_W = 128
 #SCREEN_H = 480
 #SCREEN_W = 640
+#SCREEN_H = 240
+#SCREEN_W = 320
 
 X = 0
 Y = 1
@@ -99,7 +102,8 @@ class MainLoop( object ):
             for wall in walls:
                color = (255, 255, 255)
                gfx.line( color, x, wall.draw[START], wall.draw[END], \
-                  3 if GridWall.SIDE_NS == wall.side else 2 )
+                  Gfx.PATTERN_FILLED if GridWall.SIDE_NS == wall.side else \
+                  Gfx.PATTERN_HASH )
 
             # Draw the mobs.
             for mob in mobs:
@@ -115,7 +119,7 @@ class MainLoop( object ):
 
          gfx.wait( 10 )
 
-gfx = Gfx( (SCREEN_W, SCREEN_H), 4 )
+gfx = Gfx( (SCREEN_W, SCREEN_H), ZOOM )
 main = MainLoop( gfx, Input(), GridMap( DefaultMap ) )
 
 main.run()

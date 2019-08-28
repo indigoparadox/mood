@@ -178,7 +178,7 @@ class Input( object ):
 class Gfx( object ):
 
    PATTERN_FILLED = 0
-   PATTERN_DOTS = 1
+   PATTERN_HASH = 1
    PATTERN_STRIPES_HORIZ = 2
    PATTERN_STRIPES_DIAG_1 = 3
 
@@ -189,6 +189,7 @@ class Gfx( object ):
       self.plane = (float( 0 ), float( 0.66 ))
       self.zoom = zoom
       self.diag_stripe_offset = 0
+      self.diag_last_x = 0
 
       if ENGINE_PYGAME == engine:
          pygame.init()
@@ -207,54 +208,62 @@ class Gfx( object ):
             self.screen.get_height() * self.zoom] )
 
    def text( self, text, color, x, y, bg=None ):
-      if ENGINE_PYGAME == engine:
-         char_offset = 0
-         for char in text:
-            char_bits = font8x8[ord( char )]
-            row_offset = 0
-            for row in char_bits:
-               pix_offset = 0
-               for p in xrange( 8 ):
-                  if 1 == 1 & (row >> pix_offset): 
-                     pygame.draw.rect( self.screen, color, \
-                        [(x + pix_offset + (char_offset * 9)) * self.zoom, \
-                        (y + row_offset) * self.zoom, self.zoom, self.zoom] )
-                  elif bg:
-                     pygame.draw.rect( self.screen, bg, \
-                        [(x + pix_offset + (char_offset * 9)) * self.zoom, \
-                        (y + row_offset) * self.zoom, self.zoom, self.zoom] )
-                  pix_offset += 1
-               row_offset += 1
-            char_offset += 1
+      char_offset = 0
+      for char in text:
+         char_bits = font8x8[ord( char )]
+         row_offset = 0
+         for row in char_bits:
+            pix_offset = 0
+            for p in xrange( 8 ):
+               if 1 == 1 & (row >> pix_offset): 
+                  self.pixel( color, \
+                     (x + pix_offset + (char_offset * 9)), \
+                     (y + row_offset) )
+               elif bg:
+                  self.pixel( bg, \
+                     (x + pix_offset + (char_offset * 9)), \
+                     (y + row_offset) )
+               pix_offset += 1
+            row_offset += 1
+         char_offset += 1
+
+   def pixel( self, color, x, y ):
+      pygame.draw.rect( self.screen, color, \
+         [x * self.zoom, y * self.zoom, self.zoom, self.zoom] )
 
    def line( self, color, x, y1, y2, pattern ):
 
-      if ENGINE_PYGAME == engine:
-         if Gfx.PATTERN_STRIPES_HORIZ == pattern:
-            for y_dot in range( y1, y2 ):
-               if 0 < y_dot % 2:
-                  continue
-               pygame.draw.rect( self.screen, color, \
-                  [x * self.zoom, y_dot * self.zoom, self.zoom, self.zoom] )
+      if Gfx.PATTERN_STRIPES_HORIZ == pattern:
+         for y_dot in range( y1, y2 ):
+            if 0 < y_dot % 2:
+               self.pixel( (0, 0, 0), x, y_dot )
+            else:
+               self.pixel( color, x, y_dot )
 
-         elif Gfx.PATTERN_DOTS == pattern:
-            for y_dot in range( y1, y2 ):
-               if 0 < y_dot % 2 and 0 < x % 2 \
-               or 0 == y_dot % 2 and 0 == x % 2:
-                  continue
-               pygame.draw.rect( self.screen, color, \
-                  [x * self.zoom, y_dot * self.zoom, self.zoom, self.zoom] )
+      elif Gfx.PATTERN_HASH == pattern:
+         for y_dot in range( y1, y2 ):
+            if 0 < y_dot % 2 and 0 < x % 2 \
+            or 0 == y_dot % 2 and 0 == x % 2:
+               continue
+            self.pixel( color, x, y_dot )
 
-         elif Gfx.PATTERN_STRIPES_DIAG_1 == pattern:
-            for y_dot in range( y1, y2 ):
-               if 0 != ((self.diag_stripe_offset + y_dot) % 3):
-                  continue
-               pygame.draw.rect( self.screen, color, \
-                  [x * self.zoom, y_dot * self.zoom, self.zoom, self.zoom] )
+      elif Gfx.PATTERN_STRIPES_DIAG_1 == pattern:
+         for y_dot in range( y1, y2 ):
+            if 0 != ((self.diag_stripe_offset + y_dot) % 3):
+               self.pixel( (0, 0, 0), x, y_dot )
+            else:
+               self.pixel( color, x, y_dot )
+
+         if x == self.diag_last_x + 1:
             self.diag_stripe_offset += 1
-
          else:
-            height = (y2 - y1) * self.zoom
+            self.diag_stripe_offset = 0
+
+         self.diag_last_x = x
+
+      else:
+         height = (y2 - y1) * self.zoom
+         if ENGINE_PYGAME == engine:
             pygame.draw.rect( self.screen, color, \
                [x * self.zoom, y1 * self.zoom, self.zoom, height] )
 
