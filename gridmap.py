@@ -130,7 +130,12 @@ class GridMap( object ):
       self.grid = grid
 
    def tile( self, x, y ):
-      return self.grid[x][y]
+      out = 0
+      try:
+         out = self.grid[x][y]
+      except IndexError:
+         pass
+      return out
 
    def collides( self, pos ):
       if self.tile( pos[X], pos[Y] ) == 0:

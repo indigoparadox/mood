@@ -143,7 +143,8 @@ class MainLoop( object ):
                #      gfx.line( (255, 0, 0), x, px_y, px_y, False )
 
          # Draw the UI.
-         gfx.text( 'foo', (255, 255, 255), 0,  0, (0, 0, 0) )
+         gfx.text( '{},{}'.format( int( gfx.pos[X] ), int( gfx.pos[Y] ) ), \
+            (255, 255, 255), 0,  0, (0, 0, 0) )
 
          gfx.flip()
 
