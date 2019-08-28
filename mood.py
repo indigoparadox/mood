@@ -99,7 +99,7 @@ class MainLoop( object ):
             for wall in walls:
                color = (255, 255, 255)
                gfx.line( color, x, wall.draw[START], wall.draw[END], \
-                  True if GridWall.SIDE_NS == wall.side else False )
+                  3 if GridWall.SIDE_NS == wall.side else 2 )
 
             # Draw the mobs.
             for mob in mobs:

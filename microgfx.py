@@ -179,7 +179,8 @@ class Gfx( object ):
 
    PATTERN_FILLED = 0
    PATTERN_DOTS = 1
-   PATTERN_STRIPES = 2
+   PATTERN_STRIPES_HORIZ = 2
+   PATTERN_STRIPES_DIAG_1 = 3
 
    def __init__( self, screen_sz, zoom=1 ):
 
@@ -187,6 +188,7 @@ class Gfx( object ):
       self.facing = (float( -1 ), float( 0 ))
       self.plane = (float( 0 ), float( 0.66 ))
       self.zoom = zoom
+      self.diag_stripe_offset = 0
 
       if ENGINE_PYGAME == engine:
          pygame.init()
@@ -228,7 +230,7 @@ class Gfx( object ):
    def line( self, color, x, y1, y2, pattern ):
 
       if ENGINE_PYGAME == engine:
-         if Gfx.PATTERN_STRIPES == pattern:
+         if Gfx.PATTERN_STRIPES_HORIZ == pattern:
             for y_dot in range( y1, y2 ):
                if 0 < y_dot % 2:
                   continue
@@ -242,6 +244,14 @@ class Gfx( object ):
                   continue
                pygame.draw.rect( self.screen, color, \
                   [x * self.zoom, y_dot * self.zoom, self.zoom, self.zoom] )
+
+         elif Gfx.PATTERN_STRIPES_DIAG_1 == pattern:
+            for y_dot in range( y1, y2 ):
+               if 0 != ((self.diag_stripe_offset + y_dot) % 3):
+                  continue
+               pygame.draw.rect( self.screen, color, \
+                  [x * self.zoom, y_dot * self.zoom, self.zoom, self.zoom] )
+            self.diag_stripe_offset += 1
 
          else:
             height = (y2 - y1) * self.zoom
