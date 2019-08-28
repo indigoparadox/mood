@@ -26,7 +26,7 @@ class display( object ):
 
    @staticmethod
    def flip():
-      pass
+      print( "Flip!" )
 
 class time( object ):
    @staticmethod

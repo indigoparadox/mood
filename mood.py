@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-import time
-import random
 import math
 from gridmap import GridMap, GridRay, GridWall
 from microgfx import Gfx
 from maps import DefaultMap, DefaultMapTiles
 from mob import Mob
-import pygame
 
 #from guppy import hpy
 
@@ -25,10 +22,6 @@ Y = 1
 START = 0
 END = 1
 
-def pick_wall_color( wall ):
-   color = (255, 255, 255)
-   return color
-
 def pick_wall_pattern( wall ):
    return Gfx.PATTERN_STRIPES_DIAG_1 if GridWall.SIDE_NS == wall.side else \
    Gfx.PATTERN_HASH
@@ -36,21 +29,16 @@ def pick_wall_pattern( wall ):
 def pick_top_pattern( wall ):
    return Gfx.PATTERN_STRIPES_HORIZ
 
-def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM ):
+def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
    gfx = Gfx( pyg, screen_sz, zoom )
    gmap = GridMap( DefaultMap, DefaultMapTiles )
    tiles = DefaultMapTiles
-   ticks = 0
    mspeed = 0.5
    running = True
 
    while( running ):
 
       gfx.blank( (0, 0, 0) )
-
-      prev_ticks = ticks
-      ticks = time.clock()
-      frame_ticks = (ticks - prev_ticks) / 1000.0
       rspeed = 0.5
 
       # Poll interaction events.
@@ -100,14 +88,18 @@ def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM ):
          last_wall_top = 0
          for wall in walls:
             if GridWall.FACE_BACK != wall.face:
-               color = pick_wall_color( wall )
+               if use_color:
+                  color = wall.tile['color']
+               else:
+                  color = (255, 255, 255)
                gfx.line( color, x, wall.draw[START], wall.draw[END], \
                   pick_wall_pattern( wall ) )
 
             if GridWall.FACE_BACK == wall.face:
                last_wall_top = wall.draw[START];
             elif 0 < last_wall_top:
-               color = (255, 255, 255)
+               if use_color:
+                  color = wall.tile['color']
                gfx.line( color, x, last_wall_top, wall.draw[START], \
                   pick_top_pattern( wall ) )
                last_wall_top = 0
@@ -121,6 +113,9 @@ def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM ):
       gfx.wait( 10 )
 
 if '__main__' == __name__:
-   import pygame
-   mood( pyg=pygame )
+   try:
+      import pygame
+   except ImportError:
+      import upygame as pygame
+   mood( pyg=pygame, use_color=True )
 

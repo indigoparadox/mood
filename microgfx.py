@@ -175,7 +175,7 @@ class Gfx( object ):
          row_offset = 0
          for row in char_bits:
             pix_offset = 0
-            for p in xrange( 8 ):
+            for p in range( 8 ):
                if 1 == 1 & (row >> pix_offset): 
                   self.pixel( color, \
                      (x + pix_offset + (char_offset * 9)), \
