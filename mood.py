@@ -10,7 +10,7 @@ from mob import Mob
 
 #from guppy import hpy
 
-ZOOM = 4
+ZOOM = 2
 SCREEN_H = 64
 SCREEN_W = 128
 #SCREEN_H = 480
@@ -38,17 +38,24 @@ class MainLoop( object ):
 
    def pick_wall_color( self, wall ):
       color = (255, 255, 255)
-      if 1 == wall.tile:
-         color = (255, 0, 0)
-      elif 2 == wall.tile:
-         color = (0, 255, 0)
-      elif 3 == wall.tile:
-         color = (0, 0, 255)
-      elif 4 == wall.tile:
-         color = (255, 0, 255)
-      elif 5 == wall.tile:
-         color = (0, 255, 255)
+      #if 1 == wall.tile:
+      #   color = (255, 0, 0)
+      #elif 2 == wall.tile:
+      #   color = (0, 255, 0)
+      #elif 3 == wall.tile:
+      #   color = (0, 0, 255)
+      #elif 4 == wall.tile:
+      #   color = (255, 0, 255)
+      #elif 5 == wall.tile:
+      #   color = (0, 255, 255)
       return color
+
+   def pick_wall_pattern( self, wall ):
+      return Gfx.PATTERN_STRIPES_DIAG_1 if GridWall.SIDE_NS == wall.side else \
+      Gfx.PATTERN_HASH
+
+   def pick_top_pattern( self, wall ):
+      return Gfx.PATTERN_STRIPES_HORIZ
 
    def run( self ):
       gfx = self.gfx
@@ -70,7 +77,6 @@ class MainLoop( object ):
          frame_ticks = (ticks - prev_ticks) / 1000.0
          #rspeed = frame_ticks * 3
          rspeed = 0.5
-         last_wall_top = 0
 
          #print (gfx.plane[X], gfx.plane[Y], gfx.facing[X], gfx.facing[Y])
 
@@ -86,11 +92,11 @@ class MainLoop( object ):
             new_x = gfx.pos[X]
             new_y = gfx.pos[Y]
             if not self.gmap.collides( \
-            (int(gfx.pos[X] + gfx.facing[X] * mspeed), int(gfx.pos[Y])) ):
+            (int(gfx.pos[X] + gfx.facing[X] * (mspeed * 2)), int(gfx.pos[Y])) ):
                new_x = gfx.pos[X] + (gfx.facing[X] * mspeed)
             if not self.gmap.collides( \
             (int(gfx.pos[X]), int(gfx.pos[Y] + gfx.facing[Y] * mspeed)) ):
-               new_y = gfx.pos[Y] + (gfx.facing[Y] * mspeed)
+               new_y = gfx.pos[Y] + (gfx.facing[Y] * (mspeed * 2))
             gfx.pos = (new_x, new_y)
 
          # Draw the walls.
@@ -114,19 +120,20 @@ class MainLoop( object ):
                walls.append( wall )
 
             walls = reversed( walls )
+            last_wall_top = 0
             for wall in walls:
                if GridWall.FACE_BACK != wall.face:
                   color = self.pick_wall_color( wall )
                   gfx.line( color, x, wall.draw[START], wall.draw[END], \
-                     Gfx.PATTERN_FILLED if GridWall.SIDE_NS == wall.side else \
-                     Gfx.PATTERN_HASH )
+                     self.pick_wall_pattern( wall ) )
 
                if GridWall.FACE_BACK == wall.face:
                   last_wall_top = wall.draw[START];
                elif 0 < last_wall_top:
                   color = (255, 255, 255)
                   gfx.line( color, x, last_wall_top, wall.draw[START], \
-                     Gfx.PATTERN_STRIPES_HORIZ )
+                     self.pick_top_pattern( wall ) )
+                  last_wall_top = 0
 
             # Draw the mobs.
             for mob in mobs:

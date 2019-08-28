@@ -22,6 +22,7 @@ class GridWall( object ):
       self.draw = (0, 0)
       self.face = GridWall.FACE_FRONT
       self.tile = tile
+      self.height = 0
 
 class GridRay( object ):
 
@@ -32,6 +33,7 @@ class GridRay( object ):
          float( facing[Y] ) + float( plane[Y] ) * float( cam_x ))
 
       self.last_tile = 0
+      self._last_wall_height = 0
 
       # which box of the map we're in
       self.map_x = int( pos[X] )
@@ -75,41 +77,42 @@ class GridRay( object ):
          side = GridWall.SIDE_EW
 
       # Check if ray has hit a wall.
-      if gmap.grid[self.map_x][self.map_y] == self.last_tile:
+      if gmap.tile( self.map_x, self.map_y ) == self.last_tile:
          # Nope!
          return None
 
       wall = GridWall( side, gmap.grid[self.map_x][self.map_y] )
 
-      if 0 != self.last_tile and 0 == gmap.grid[self.map_x][self.map_y]:
+      if 0 < self.last_tile and 0 == gmap.tile( self.map_x, self.map_y ):
          # This must be a back wall, since we're going to 0.
          wall.face = GridWall.FACE_BACK
+         wall.height = self._last_wall_height
+      else:
+         wall.height = 1.0 / float( gmap.tile( self.map_x, self.map_y ) )
+         self._last_wall_height = wall.height
 
-      self.last_tile = gmap.grid[self.map_x][self.map_y]
+      self.last_tile = gmap.tile( self.map_x, self.map_y )
 
       # Calculate distance projected on camera direction
       # (Euclidean distance will give fisheye effect!)
       if wall.side == GridWall.SIDE_NS:
          wall.dist = \
-            (self.map_x - pos[X] + (1 - self.step[X]) / 2) / self.dir[X]
+            (float( self.map_x ) - pos[X] + (1.0 - self.step[X]) / 2.0) / \
+            self.dir[X]
       else:
          wall.dist = \
-            (self.map_y - pos[Y] + (1 - self.step[Y]) / 2) / self.dir[Y]
-      #zbuffer[x] = wall.dist
+            (float( self.map_y ) - pos[Y] + (1.0 - self.step[Y]) / 2.0) / \
+            self.dir[Y]
 
       # Determine the on-screen drawing scanline start and stop.
-      x_line_height = int(screen_sz[Y] / wall.dist)
-      x_line_half = x_line_height / 2;
+      x_line_height = int( float( screen_sz[Y] ) / wall.dist )
+      x_line_half = x_line_height / 2.0;
 
       # Figure out the wall bottom.
-      draw_end = int( x_line_half + (screen_sz[Y] / 2) )
+      draw_end = x_line_height + (screen_sz[Y] / 2.0)
 
       # Figure out the wall top.
-      try:
-         draw_start = int( float( draw_end ) - 2.0 * \
-            ((1.0 / gmap.grid[self.map_x][self.map_y]) * 10.0) )
-      except( ZeroDivisionError ):
-         draw_start = 0
+      draw_start = float( draw_end ) - 2.0 * x_line_half * wall.height
 
       # calculate lowest and highest pixel to fill in current stripe
       if draw_start < 0:
@@ -117,7 +120,7 @@ class GridRay( object ):
       if draw_end >= screen_sz[Y]:
          draw_end = screen_sz[Y] - 1
 
-      wall.draw = (draw_start, draw_end)
+      wall.draw = (int( draw_start ), int( draw_end ))
 
       return wall
 
@@ -126,11 +129,11 @@ class GridMap( object ):
    def __init__( self, grid ):
       self.grid = grid
 
-   def tile( self, pos ):
-      return self.grid[int(pos[X])][int(pos[Y])]
+   def tile( self, x, y ):
+      return self.grid[x][y]
 
    def collides( self, pos ):
-      if self.tile( pos ) == 0:
+      if self.tile( pos[X], pos[Y] ) == 0:
          return False
       else:
          return True
