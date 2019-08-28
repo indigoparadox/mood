@@ -8,6 +8,48 @@ Y = 1
 START = 0
 END = 1
 
+class GridCam( object ):
+
+   def __init__( self, gmap ):
+
+      self.pos = (float( 6 ), float( 3 ))
+      self.facing = (float( -1 ), float( 0 ))
+      self.plane = (float( 0 ), float( 0.66 ))
+
+      self.gmap = gmap
+
+   def forward( self, mspeed ):
+      new_x = self.pos[X]
+      new_y = self.pos[Y]
+      if not self.gmap.collides( \
+      (int(self.pos[X] + self.facing[X] * (mspeed * 2)), int(self.pos[Y])) ):
+         new_x = self.pos[X] + (self.facing[X] * mspeed)
+      if not self.gmap.collides( \
+      (int(self.pos[X]), int(self.pos[Y] + self.facing[Y] * mspeed)) ):
+         new_y = self.pos[Y] + (self.facing[Y] * (mspeed * 2))
+      self.pos = (new_x, new_y)
+
+   def rotate( self, speed ):
+
+      # Speed -1 for right, +1 for left.
+
+      # Rotate the camera.
+      new_facing = \
+         (self.facing[X] * math.cos( speed ) - \
+            self.facing[Y] * math.sin( speed ), \
+         self.facing[X] * math.sin( speed ) + \
+            self.facing[Y] * math.cos( speed ))
+
+      # Rotate the map.
+      new_plane = \
+         (self.plane[X] * math.cos( speed ) - \
+            self.plane[Y] * math.sin( speed ),
+         self.plane[X] * math.sin( speed ) + \
+            self.plane[Y] * math.cos( speed ))
+
+      self.facing = new_facing
+      self.plane = new_plane
+
 class GridWall( object ):
 
    SIDE_NS = 0

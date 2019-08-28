@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import math
-from gridmap import GridMap, GridRay, GridWall
+from gridmap import GridMap, GridRay, GridWall, GridCam
 from microgfx import Gfx
 from maps import DefaultMap, DefaultMapTiles
 from mob import Mob
@@ -32,6 +32,7 @@ def pick_top_pattern( wall ):
 def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
    gfx = Gfx( pyg, screen_sz, zoom )
    gmap = GridMap( DefaultMap, DefaultMapTiles )
+   cam = GridCam( gmap )
    tiles = DefaultMapTiles
    mspeed = 0.5
    running = True
@@ -51,25 +52,17 @@ def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
 
       keys = pygame.key.get_pressed()
       if keys[pygame.K_RIGHT]:
-         gfx.rotate( -1 * rspeed )
+         cam.rotate( -1 * rspeed )
       if keys[pygame.K_LEFT]:
-         gfx.rotate( rspeed )
+         cam.rotate( rspeed )
       if keys[pygame.K_UP]:
-         new_x = gfx.pos[X]
-         new_y = gfx.pos[Y]
-         if not gmap.collides( \
-         (int(gfx.pos[X] + gfx.facing[X] * (mspeed * 2)), int(gfx.pos[Y])) ):
-            new_x = gfx.pos[X] + (gfx.facing[X] * mspeed)
-         if not gmap.collides( \
-         (int(gfx.pos[X]), int(gfx.pos[Y] + gfx.facing[Y] * mspeed)) ):
-            new_y = gfx.pos[Y] + (gfx.facing[Y] * (mspeed * 2))
-         gfx.pos = (new_x, new_y)
+         cam.forward( mspeed )
 
       # Draw the walls.
       for x in range( 0, screen_sz[X] - 1 ):
          ray = None
          try:
-            ray = GridRay( gmap, x, gfx.pos, gfx.facing, gfx.plane, 
+            ray = GridRay( gmap, x, cam.pos, cam.facing, cam.plane, 
                screen_sz )
          except( ZeroDivisionError ):
             continue
@@ -79,7 +72,7 @@ def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
          while None == wall or \
          (ray.map_x < 23 and ray.map_y < 23 and \
          ray.map_x > 0 and ray.map_y > 0):
-            wall = ray.cast( gfx.pos, screen_sz )
+            wall = ray.cast( cam.pos, screen_sz )
             if None == wall:
                continue
             walls.append( wall )
@@ -105,7 +98,7 @@ def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
                last_wall_top = 0
 
       # Draw the UI.
-      gfx.text( '{},{}'.format( int( gfx.pos[X] ), int( gfx.pos[Y] ) ), \
+      gfx.text( '{},{}'.format( int( cam.pos[X] ), int( cam.pos[Y] ) ), \
          (255, 255, 255), 0,  0, (0, 0, 0) )
 
       gfx.flip()

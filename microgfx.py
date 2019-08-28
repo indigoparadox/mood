@@ -147,9 +147,6 @@ class Gfx( object ):
 
    def __init__( self, pyg, screen_sz, zoom=1 ):
 
-      self.pos = (float( 6 ), float( 3 ))
-      self.facing = (float( -1 ), float( 0 ))
-      self.plane = (float( 0 ), float( 0.66 ))
       self.zoom = zoom
       self.diag_stripe_offset = 0
       self.diag_last_x = 0
@@ -227,27 +224,6 @@ class Gfx( object ):
          height = (y2 - y1) * self.zoom
          self.pygame.draw.rect( self.screen, color, \
             [x * self.zoom, y1 * self.zoom, self.zoom, height] )
-
-   def rotate( self, speed ):
-
-      # Speed -1 for right, +1 for left.
-
-      # Rotate the camera.
-      new_facing = \
-         (self.facing[X] * math.cos( speed ) - \
-            self.facing[Y] * math.sin( speed ), \
-         self.facing[X] * math.sin( speed ) + \
-            self.facing[Y] * math.cos( speed ))
-
-      # Rotate the map.
-      new_plane = \
-         (self.plane[X] * math.cos( speed ) - \
-            self.plane[Y] * math.sin( speed ),
-         self.plane[X] * math.sin( speed ) + \
-            self.plane[Y] * math.cos( speed ))
-
-      self.facing = new_facing
-      self.plane = new_plane
 
    def flip( self ):
       self.pygame.display.flip()
