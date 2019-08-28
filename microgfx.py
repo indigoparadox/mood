@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-ENGINE_SSD1306 = 1
-ENGINE_PYGAME = 2
-
 X = 0
 Y = 1
 
@@ -140,40 +137,7 @@ font8x8 = [
 engine = None
 
 import math
-try:
-   import ssd1306
-   engine = ENGINE_SSD1306
-except:
-   import pygame
-   engine = ENGINE_PYGAME
-
-class Input( object ):
-
-   EVENT_NONE = 0
-   EVENT_QUIT = 1
-   EVENT_RLEFT = 2
-   EVENT_RRIGHT = 3
-   EVENT_FWD = 4
-
-   def __init__( self ):
-      pass
-
-   def poll( self ):
-      if ENGINE_PYGAME == engine:
-         for event in pygame.event.get():
-            if pygame.QUIT == event.type:
-               return Input.EVENT_QUIT
-            elif pygame.KEYDOWN == event.type:
-               if pygame.K_ESCAPE == event.key:
-                  return Input.EVENT_QUIT
-
-         keys = pygame.key.get_pressed()
-         if keys[pygame.K_RIGHT]:
-            return Input.EVENT_RRIGHT
-         if keys[pygame.K_LEFT]:
-            return Input.EVENT_RLEFT
-         if keys[pygame.K_UP]:
-            return Input.EVENT_FWD
+import pygame
 
 class Gfx( object ):
 
@@ -191,21 +155,18 @@ class Gfx( object ):
       self.diag_stripe_offset = 0
       self.diag_last_x = 0
 
-      if ENGINE_PYGAME == engine:
-         pygame.init()
-         self.screen = pygame.display.set_mode( \
-            (screen_sz[X] * self.zoom, screen_sz[Y] * self.zoom) )
-         self.clock = pygame.time.Clock()
+      pygame.init()
+      self.screen = pygame.display.set_mode( \
+         (screen_sz[X] * self.zoom, screen_sz[Y] * self.zoom) )
+      self.clock = pygame.time.Clock()
 
    def wait( self, fps ):
-      if ENGINE_PYGAME == engine:
-         self.clock.tick( fps )
+      self.clock.tick( fps )
 
    def blank( self, color ):
-      if ENGINE_PYGAME == engine:
-         pygame.draw.rect( self.screen, color, [0, 0,
-            self.screen.get_width() * self.zoom, 
-            self.screen.get_height() * self.zoom] )
+      pygame.draw.rect( self.screen, color, [0, 0,
+         self.screen.get_width() * self.zoom, 
+         self.screen.get_height() * self.zoom] )
 
    def text( self, text, color, x, y, bg=None ):
       char_offset = 0
@@ -264,9 +225,8 @@ class Gfx( object ):
 
       else:
          height = (y2 - y1) * self.zoom
-         if ENGINE_PYGAME == engine:
-            pygame.draw.rect( self.screen, color, \
-               [x * self.zoom, y1 * self.zoom, self.zoom, height] )
+         pygame.draw.rect( self.screen, color, \
+            [x * self.zoom, y1 * self.zoom, self.zoom, height] )
 
    def rotate( self, speed ):
 
@@ -290,6 +250,5 @@ class Gfx( object ):
       self.plane = new_plane
 
    def flip( self ):
-      if ENGINE_PYGAME == engine:
-         pygame.display.flip()
+      pygame.display.flip()
 

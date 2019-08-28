@@ -4,9 +4,10 @@ import time
 import random
 import math
 from gridmap import GridMap, GridRay, GridWall
-from microgfx import Gfx, Input
+from microgfx import Gfx
 from maps import DefaultMap, DefaultMapTiles
 from mob import Mob
+import pygame
 
 #from guppy import hpy
 
@@ -24,30 +25,15 @@ Y = 1
 START = 0
 END = 1
 
-sprites = {
-   'bottle': [0x6, 0xcb, 0xb5, 0x8b, 0x85, 0xbb, 0xcf, 0x6]
-}
-
 class MainLoop( object ):
 
-   def __init__( self, gfx, inp, gmap ):
+   def __init__( self, gfx, gmap ):
       self.gfx = gfx
       self.gmap = gmap
       self.running = True
-      self.input = inp
 
    def pick_wall_color( self, wall ):
       color = (255, 255, 255)
-      #if 1 == wall.tile:
-      #   color = (255, 0, 0)
-      #elif 2 == wall.tile:
-      #   color = (0, 255, 0)
-      #elif 3 == wall.tile:
-      #   color = (0, 0, 255)
-      #elif 4 == wall.tile:
-      #   color = (255, 0, 255)
-      #elif 5 == wall.tile:
-      #   color = (0, 255, 255)
       return color
 
    def pick_wall_pattern( self, wall ):
@@ -63,11 +49,6 @@ class MainLoop( object ):
       mspeed = 0.5
       zbuffer = [0] * SCREEN_W
 
-      mobs = []
-
-      randpos = (random.randint( 10, 18 ), random.randint( 10, 18 ))
-      mobs.append( Mob( randpos, sprites['bottle'] ) )
-
       while( self.running ):
 
          gfx.blank( (0, 0, 0) )
@@ -75,20 +56,22 @@ class MainLoop( object ):
          prev_ticks = ticks
          ticks = time.clock()
          frame_ticks = (ticks - prev_ticks) / 1000.0
-         #rspeed = frame_ticks * 3
          rspeed = 0.5
 
-         #print (gfx.plane[X], gfx.plane[Y], gfx.facing[X], gfx.facing[Y])
-
          # Poll interaction events.
-         event = self.input.poll()
-         if Input.EVENT_QUIT == event:
-            self.running = False
-         elif Input.EVENT_RRIGHT == event:
+         for event in pygame.event.get():
+            if pygame.QUIT == event.type:
+               self.running = False
+            elif pygame.KEYDOWN == event.type:
+               if pygame.K_ESCAPE == event.key:
+                  self.running = False
+
+         keys = pygame.key.get_pressed()
+         if keys[pygame.K_RIGHT]:
             gfx.rotate( -1 * rspeed )
-         elif Input.EVENT_RLEFT == event:
+         if keys[pygame.K_LEFT]:
             gfx.rotate( rspeed )
-         elif Input.EVENT_FWD == event:
+         if keys[pygame.K_UP]:
             new_x = gfx.pos[X]
             new_y = gfx.pos[Y]
             if not self.gmap.collides( \
@@ -135,13 +118,6 @@ class MainLoop( object ):
                      self.pick_top_pattern( wall ) )
                   last_wall_top = 0
 
-            # Draw the mobs.
-            for mob in mobs:
-               pass
-               #for px_x, px_y, px in mob.cast( x, gfx.pos, gfx.facing, gfx.plane, (SCREEN_W, SCREEN_H), zbuffer ):
-               #   if px:
-               #      gfx.line( (255, 0, 0), x, px_y, px_y, False )
-
          # Draw the UI.
          gfx.text( '{},{}'.format( int( gfx.pos[X] ), int( gfx.pos[Y] ) ), \
             (255, 255, 255), 0,  0, (0, 0, 0) )
@@ -151,7 +127,7 @@ class MainLoop( object ):
          gfx.wait( 10 )
 
 gfx = Gfx( (SCREEN_W, SCREEN_H), ZOOM )
-main = MainLoop( gfx, Input(), GridMap( DefaultMap, DefaultMapTiles ) )
+main = MainLoop( gfx, GridMap( DefaultMap, DefaultMapTiles ) )
 
 main.run()
 
