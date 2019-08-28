@@ -13,10 +13,15 @@ class GridWall( object ):
    SIDE_NS = 0
    SIDE_EW = 1
 
-   def __init__( self, side ):
+   FACE_FRONT = 0
+   FACE_BACK = 1
+
+   def __init__( self, side, tile ):
       self.wall_dist = 0
       self.side = side
       self.draw = (0, 0)
+      self.face = GridWall.FACE_FRONT
+      self.tile = tile
 
 class GridRay( object ):
 
@@ -70,13 +75,18 @@ class GridRay( object ):
          side = GridWall.SIDE_EW
 
       # Check if ray has hit a wall.
-      if gmap.grid[self.map_x][self.map_y] <= 0 or \
-      gmap.grid[self.map_x][self.map_y] == self.last_tile:
+      if gmap.grid[self.map_x][self.map_y] == self.last_tile:
          # Nope!
          return None
 
+      print gmap.grid[self.map_x][self.map_y]
+      wall = GridWall( side, gmap.grid[self.map_x][self.map_y] )
+
+      if 0 != self.last_tile and 0 == gmap.grid[self.map_x][self.map_y]:
+         # This must be a back wall, since we're going to 0.
+         wall.face = GridWall.FACE_BACK
+
       self.last_tile = gmap.grid[self.map_x][self.map_y]
-      wall = GridWall( side )
 
       # Calculate distance projected on camera direction
       # (Euclidean distance will give fisheye effect!)
@@ -96,8 +106,12 @@ class GridRay( object ):
       draw_end = int( x_line_half + (screen_sz[Y] / 2) )
 
       # Figure out the wall top.
-      draw_start = int( draw_end - 2 * x_line_half * \
-         1 / gmap.grid[self.map_x][self.map_y] )
+      if 0 != gmap.grid[self.map_x][self.map_y]:
+         draw_start = int( draw_end - 2 * \
+            1 / gmap.grid[self.map_x][self.map_y] )
+      else:
+         draw_start = int( draw_end - 2 * \
+            1 / self.last_tile )
 
       # calculate lowest and highest pixel to fill in current stripe
       if draw_start < 0:

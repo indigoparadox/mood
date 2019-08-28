@@ -10,7 +10,7 @@ from mob import Mob
 
 #from guppy import hpy
 
-ZOOM = 2
+ZOOM = 4
 SCREEN_H = 64
 SCREEN_W = 128
 #SCREEN_H = 480
@@ -36,6 +36,20 @@ class MainLoop( object ):
       self.running = True
       self.input = inp
 
+   def pick_wall_color( self, wall ):
+      color = (255, 255, 255)
+      if 1 == wall.tile:
+         color = (255, 0, 0)
+      elif 2 == wall.tile:
+         color = (0, 255, 0)
+      elif 3 == wall.tile:
+         color = (0, 0, 255)
+      elif 4 == wall.tile:
+         color = (255, 0, 255)
+      elif 5 == wall.tile:
+         color = (0, 255, 255)
+      return color
+
    def run( self ):
       gfx = self.gfx
       ticks = 0
@@ -56,6 +70,7 @@ class MainLoop( object ):
          frame_ticks = (ticks - prev_ticks) / 1000.0
          #rspeed = frame_ticks * 3
          rspeed = 0.5
+         last_wall_top = 0
 
          #print (gfx.plane[X], gfx.plane[Y], gfx.facing[X], gfx.facing[Y])
 
@@ -100,10 +115,18 @@ class MainLoop( object ):
 
             walls = reversed( walls )
             for wall in walls:
-               color = (255, 255, 255)
-               gfx.line( color, x, wall.draw[START], wall.draw[END], \
-                  Gfx.PATTERN_FILLED if GridWall.SIDE_NS == wall.side else \
-                  Gfx.PATTERN_HASH )
+               if GridWall.FACE_BACK != wall.face:
+                  color = self.pick_wall_color( wall )
+                  gfx.line( color, x, wall.draw[START], wall.draw[END], \
+                     Gfx.PATTERN_FILLED if GridWall.SIDE_NS == wall.side else \
+                     Gfx.PATTERN_HASH )
+
+               if GridWall.FACE_BACK == wall.face:
+                  last_wall_top = wall.draw[START];
+               elif 0 < last_wall_top:
+                  color = (255, 255, 255)
+                  gfx.line( color, x, last_wall_top, wall.draw[START], \
+                     Gfx.PATTERN_STRIPES_HORIZ )
 
             # Draw the mobs.
             for mob in mobs:

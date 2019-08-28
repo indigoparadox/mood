@@ -244,8 +244,9 @@ class Gfx( object ):
          for y_dot in range( y1, y2 ):
             if 0 < y_dot % 2 and 0 < x % 2 \
             or 0 == y_dot % 2 and 0 == x % 2:
-               continue
-            self.pixel( color, x, y_dot )
+               self.pixel( (0, 0, 0), x, y_dot )
+            else:
+               self.pixel( color, x, y_dot )
 
       elif Gfx.PATTERN_STRIPES_DIAG_1 == pattern:
          for y_dot in range( y1, y2 ):
