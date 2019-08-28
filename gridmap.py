@@ -79,7 +79,6 @@ class GridRay( object ):
          # Nope!
          return None
 
-      print gmap.grid[self.map_x][self.map_y]
       wall = GridWall( side, gmap.grid[self.map_x][self.map_y] )
 
       if 0 != self.last_tile and 0 == gmap.grid[self.map_x][self.map_y]:
@@ -106,12 +105,11 @@ class GridRay( object ):
       draw_end = int( x_line_half + (screen_sz[Y] / 2) )
 
       # Figure out the wall top.
-      if 0 != gmap.grid[self.map_x][self.map_y]:
-         draw_start = int( draw_end - 2 * \
-            1 / gmap.grid[self.map_x][self.map_y] )
-      else:
-         draw_start = int( draw_end - 2 * \
-            1 / self.last_tile )
+      try:
+         draw_start = int( float( draw_end ) - 2.0 * \
+            ((1.0 / gmap.grid[self.map_x][self.map_y]) * 10.0) )
+      except( ZeroDivisionError ):
+         draw_start = 0
 
       # calculate lowest and highest pixel to fill in current stripe
       if draw_start < 0:
