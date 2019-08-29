@@ -58,13 +58,17 @@ class GridWall( object ):
    FACE_FRONT = 0
    FACE_BACK = 1
 
-   def __init__( self, side, tile ):
+   def __init__( self, gmap, tile_id, side ):
       self.wall_dist = 0
       self.side = side
       self.draw = (0, 0)
       self.face = GridWall.FACE_FRONT
-      self.tile = tile
       self.height = 0
+      self.gmap = gmap
+      self.tile_id = tile_id
+
+   def get_tile( self ):
+      return self.gmap.tiles[self.tile_id]
 
 class GridRay( object ):
 
@@ -119,7 +123,7 @@ class GridRay( object ):
          self.map_y += self.step[Y]
          side = GridWall.SIDE_EW
 
-      tile = self.gmap.tile( self.map_x, self.map_y )
+      tile = self.gmap.tile_at( self.map_x, self.map_y )
 
       # Check if ray has hit a wall.
       try:
@@ -129,7 +133,7 @@ class GridRay( object ):
       except TypeError:
          return None
 
-      wall = GridWall( side, tile )
+      wall = GridWall( self.gmap, tile['id'], side )
 
       if not tile['pass'] and 0 == tile['id']:
          # This must be a back wall, since we're going to 0.
@@ -178,7 +182,7 @@ class GridMap( object ):
       self.grid = grid
       self.tiles = tiles
 
-   def tile( self, x, y ):
+   def tile_at( self, x, y ):
       out = self.tiles[0]
       try:
          out = self.tiles[self.grid[x][y]]
@@ -187,7 +191,7 @@ class GridMap( object ):
       return out
 
    def collides( self, pos ):
-      if self.tile( pos[X], pos[Y] )['pass']:
+      if self.tile_at( pos[X], pos[Y] )['pass']:
          return False
       else:
          return True

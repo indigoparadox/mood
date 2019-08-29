@@ -22,6 +22,17 @@ Y = 1
 START = 0
 END = 1
 
+WHITE = (255, 255, 255)
+
+HALF_COLORS = {
+   (  0, 0, 0): (0, 0, 0),
+   (255, 0, 0): (128, 0, 0),
+   (0, 255, 0): (0, 128, 0),
+   (0, 0, 255): (0, 0, 128),
+   (255, 0, 255): (128, 0, 128),
+   (0, 255, 255): (0, 128, 128)
+}
+
 def pick_wall_pattern( wall, use_patterns ):
    if use_patterns:
       return Gfx.PATTERN_STRIPES_DIAG_1 if GridWall.SIDE_NS == wall.side else \
@@ -32,6 +43,11 @@ def pick_top_pattern( wall, use_patterns ):
    if use_patterns:
       return Gfx.PATTERN_STRIPES_HORIZ
    return Gfx.PATTERN_FILLED
+
+def pick_wall_color( wall ):
+   if GridWall.SIDE_EW == wall.side:
+      return HALF_COLORS[wall.get_tile()['color']]
+   return wall.get_tile()['color']
 
 def mood( pyg, screen_sz, zoom, use_color, use_patterns ):
    gfx = Gfx( pyg, screen_sz, zoom )
@@ -86,9 +102,9 @@ def mood( pyg, screen_sz, zoom, use_color, use_patterns ):
          for wall in walls:
             if GridWall.FACE_BACK != wall.face:
                if use_color:
-                  color = wall.tile['color']
+                  color = pick_wall_color( wall )
                else:
-                  color = (255, 255, 255)
+                  color = WHITE
                gfx.line( color, x, wall.draw[START], wall.draw[END], \
                   pick_wall_pattern( wall, use_patterns ) )
 
@@ -96,14 +112,14 @@ def mood( pyg, screen_sz, zoom, use_color, use_patterns ):
                last_wall_top = wall.draw[START];
             elif 0 < last_wall_top:
                if use_color:
-                  color = wall.tile['color']
+                  color = pick_wall_color( wall )
                gfx.line( color, x, last_wall_top, wall.draw[START], \
                   pick_top_pattern( wall, use_patterns ) )
                last_wall_top = 0
 
       # Draw the UI.
       gfx.text( '{},{}'.format( int( cam.pos[X] ), int( cam.pos[Y] ) ), \
-         (255, 255, 255), 0,  0, (0, 0, 0) )
+         WHITE, 0,  0, (0, 0, 0) )
 
       gfx.flip()
 
