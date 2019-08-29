@@ -22,14 +22,18 @@ Y = 1
 START = 0
 END = 1
 
-def pick_wall_pattern( wall ):
-   return Gfx.PATTERN_STRIPES_DIAG_1 if GridWall.SIDE_NS == wall.side else \
-   Gfx.PATTERN_HASH
+def pick_wall_pattern( wall, use_patterns ):
+   if use_patterns:
+      return Gfx.PATTERN_STRIPES_DIAG_1 if GridWall.SIDE_NS == wall.side else \
+      Gfx.PATTERN_HASH
+   return Gfx.PATTERN_FILLED
 
-def pick_top_pattern( wall ):
-   return Gfx.PATTERN_STRIPES_HORIZ
+def pick_top_pattern( wall, use_patterns ):
+   if use_patterns:
+      return Gfx.PATTERN_STRIPES_HORIZ
+   return Gfx.PATTERN_FILLED
 
-def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
+def mood( pyg, screen_sz, zoom, use_color, use_patterns ):
    gfx = Gfx( pyg, screen_sz, zoom )
    gmap = GridMap( DefaultMap, DefaultMapTiles )
    cam = GridCam( gmap )
@@ -86,7 +90,7 @@ def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
                else:
                   color = (255, 255, 255)
                gfx.line( color, x, wall.draw[START], wall.draw[END], \
-                  pick_wall_pattern( wall ) )
+                  pick_wall_pattern( wall, use_patterns ) )
 
             if GridWall.FACE_BACK == wall.face:
                last_wall_top = wall.draw[START];
@@ -94,7 +98,7 @@ def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
                if use_color:
                   color = wall.tile['color']
                gfx.line( color, x, last_wall_top, wall.draw[START], \
-                  pick_top_pattern( wall ) )
+                  pick_top_pattern( wall, use_patterns ) )
                last_wall_top = 0
 
       # Draw the UI.
@@ -106,9 +110,33 @@ def mood( pyg, screen_sz=(SCREEN_W, SCREEN_H), zoom=ZOOM, use_color=False ):
       gfx.wait( 10 )
 
 if '__main__' == __name__:
+
+   screen_sz=(SCREEN_W, SCREEN_H)
+   zoom=ZOOM
+   use_color=False
+
    try:
       import pygame
+
+      import argparse
+
+      parser = argparse.ArgumentParser()
+
+      parser.add_argument( '-z', '--zoom', type=int )
+      parser.add_argument( '-r', '--res', nargs="+", type=int )
+      parser.add_argument( '-c', '--color', action='store_true' )
+      parser.add_argument( '-p', '--patterns', action='store_true' )
+
+      args = parser.parse_args()
+
+      if None != args.zoom:
+         zoom = args.zoom
+      use_color = args.color
+      use_patterns = args.patterns
+      if None != args.res:
+         screen_sz = tuple( args.res )
+      
    except ImportError:
       import upygame as pygame
-   mood( pyg=pygame, use_color=True )
+   mood( pygame, screen_sz, zoom, use_color, use_patterns )
 
