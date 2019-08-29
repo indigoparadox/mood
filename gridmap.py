@@ -135,7 +135,7 @@ class GridRay( object ):
 
       wall = GridWall( self.gmap, tile['id'], side )
 
-      if not tile['pass'] and 0 == tile['id']:
+      if not self.last_tile['pass'] and 0 == tile['id']:
          # This must be a back wall, since we're going to 0.
          wall.face = GridWall.FACE_BACK
          wall.height = self._last_wall_height

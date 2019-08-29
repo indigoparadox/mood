@@ -112,7 +112,7 @@ def mood( pyg, screen_sz, zoom, use_color, use_patterns ):
                last_wall_top = wall.draw[START];
             elif 0 < last_wall_top:
                if use_color:
-                  color = pick_wall_color( wall )
+                  color = WHITE
                gfx.line( color, x, last_wall_top, wall.draw[START], \
                   pick_top_pattern( wall, use_patterns ) )
                last_wall_top = 0
